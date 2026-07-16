@@ -1,0 +1,37 @@
+import z from "zod";
+import { UserSchema } from "../types/user.type";
+
+export const CreateUserDTO = UserSchema.pick(
+    {
+    
+        fullName: true,
+        email: true,
+        password: true,
+        phoneNumber: true,
+
+    }
+).extend({
+    profilePicture: z.string().optional().nullable(),
+    role: z.enum(["user", "admin"]).optional(),
+})
+// .extend( // add new attribute to zod
+//     {
+//         confirmPassword: z.string().min(6)
+//     }
+// ).refine( // extra validation for confirmPassword
+//     (data) => data.password === data.confirmPassword,
+//     {
+//         message: "Passwords do not match",
+//         path: ["confirmPassword"]
+//     }
+// )
+export type CreateUserDTO = z.infer<typeof CreateUserDTO>;
+
+export const LoginUserDTO = z.object({
+    email: z.email(),
+    password: z.string().min(6)
+});
+export type LoginUserDTO = z.infer<typeof LoginUserDTO>;
+
+export const UpdateUserDTO = UserSchema.partial();
+export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;

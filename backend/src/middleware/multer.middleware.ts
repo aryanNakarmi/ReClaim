@@ -1,0 +1,99 @@
+import multer, { FileFilterCallback, StorageEngine } from 'multer';
+import path from 'path';
+import { Request } from 'express';
+import fs from 'fs';
+
+// File size limits
+const maxImageSize: number = 5 * 1024 * 1024; // 5MB for images
+
+const createDirectories = () => {
+    const directories = [
+        path.join(process.cwd(), 'public', 'lost_reports'),
+        path.join(process.cwd(), 'public', 'found_items'),
+        path.join(process.cwd(), 'public', 'profile_pictures'),
+    ];
+
+    directories.forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+            console.log(`Created directory: ${dir}`);
+        } else {
+            console.log(`Directory exists: ${dir}`);
+        }
+    });
+};
+
+createDirectories();
+
+const storage: StorageEngine = multer.diskStorage({
+    destination: (
+        req: Request,
+        file: Express.Multer.File,
+        cb: (error: Error | null, destination: string) => void
+    ): void => {
+        if (file.fieldname === 'lostItem') {
+            const destPath = path.join(process.cwd(), 'public', 'lost_reports');
+            console.log(`Uploading to: ${destPath}`);
+            cb(null, destPath);
+        }
+        else if (file.fieldname === 'foundItem') {
+            cb(null, path.join(process.cwd(), 'public', 'found_items'));
+        }
+        else if (file.fieldname === 'profilePicture') {
+            cb(null, path.join(process.cwd(), 'public', 'profile_pictures'));
+        }
+        else {
+            cb(new Error('Invalid field name for upload.'), '');
+        }
+    },
+    filename: (
+        req: Request,
+        file: Express.Multer.File,
+        cb: (error: Error | null, filename: string) => void
+    ): void => {
+        const ext = path.extname(file.originalname);
+        let prefix = 'file';
+
+        if (file.fieldname === 'lostItem') {
+            prefix = 'lost';
+        } else if (file.fieldname === 'foundItem') {
+            prefix = 'found';
+        } else if (file.fieldname === 'profilePicture') {
+            prefix = 'profile';
+        }
+
+        const filename = `${prefix}-${Date.now()}${ext}`;
+        console.log(`Saving file: ${filename}`);
+        cb(null, filename);
+    },
+});
+
+const fileFilter = (
+    req: Request,
+    file: Express.Multer.File,
+    cb: FileFilterCallback
+): void => {
+    if (
+        file.fieldname === 'lostItem' ||
+        file.fieldname === 'foundItem' ||
+        file.fieldname === 'profilePicture'
+    ) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+            cb(new Error('Image format not supported. Allowed: jpg, jpeg, png, gif'));
+            return;
+        }
+        cb(null, true);
+        return;
+    }
+
+    cb(new Error('Invalid field name for upload.'));
+    return;
+};
+
+export const uploadImage = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: { fileSize: maxImageSize },
+});
+
+export default uploadImage;
