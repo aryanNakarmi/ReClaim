@@ -7,7 +7,7 @@ export const transporter = nodemailer.createTransport({
     auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
-    }, 
+    },
 });
 
 export const sendEmail = async (to: string, subject: string, html: string) => {

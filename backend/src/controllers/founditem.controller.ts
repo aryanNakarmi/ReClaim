@@ -9,7 +9,7 @@ import z from "zod";
 interface AuthRequest extends Request {
   user?: any;
 }
-
+ 
 export class FoundItemController {
   async createPost(req: Request, res: Response) {
     try {

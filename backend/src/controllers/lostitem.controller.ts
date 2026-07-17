@@ -8,7 +8,7 @@ import { sendEmail } from "../config/email";
 
 interface AuthRequest extends Request {
   user?: any;
-}
+} 
 
 export class LostItemController {
   async uploadReportPhoto(req: AuthRequest, res: Response) {
