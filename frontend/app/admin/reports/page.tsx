@@ -12,7 +12,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`;
 interface LostItemReport {
   _id: string;
   itemCategory: string;
-  location: { address: string; lat: number; lng: number };
+  location: string;
   description?: string;
   imageUrl: string;
   status: "pending" | "approved" | "rejected";
@@ -194,7 +194,7 @@ export default function AdminReportsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900 capitalize truncate">{report.itemCategory}</h3>
-                  <p className="text-sm text-gray-500 truncate">{report.location.address}</p>
+                  <p className="text-sm text-gray-500 truncate">{report.location}</p>
                   <p className="text-xs text-gray-400 mt-1">{report.reportedBy?.fullName}</p>
                 </div>
                 <HiChevronRight className="text-gray-400 flex-shrink-0" size={20} />
@@ -248,17 +248,7 @@ export default function AdminReportsPage() {
               <h2 className="text-2xl font-bold text-gray-900 capitalize mb-1">{selectedReport.itemCategory}</h2>
               <div className="flex items-start gap-1.5 text-gray-600">
                 <HiMapPin size={18} className="text-[#E85D4A] shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm">{selectedReport.location.address}</p>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${selectedReport.location.lat}&mlon=${selectedReport.location.lng}#map=18/${selectedReport.location.lat}/${selectedReport.location.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#E85D4A] font-semibold hover:underline"
-                  >
-                    Open on map ↗
-                  </a>
-                </div>
+                <p className="text-sm">{selectedReport.location}</p>
               </div>
             </div>
 

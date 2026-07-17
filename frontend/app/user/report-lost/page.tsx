@@ -6,19 +6,12 @@ import { useRouter } from "next/navigation";
 import { HiCamera, HiX } from "react-icons/hi";
 import { toast } from "react-toastify";
 import { uploadReportPhoto, createReport } from "@/lib/api/lost-item/lost-item";
-import MapLocationPicker from "./_components/MapLocationPicker";
-
-interface LocationValue {
-  address: string;
-  lat: number;
-  lng: number;
-}
 
 export default function ReportLostItemPage() {
   const router = useRouter();
 
   const [itemCategory, setItemCategory] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [photoPreview, setPhotoPreview] = useState("");
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState("");
@@ -54,13 +47,13 @@ export default function ReportLostItemPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!itemCategory.trim()) { toast.error("Please enter item category"); return; }
-    if (!location) { toast.error("Please select a location on the map"); return; }
+    if (!location.trim()) { toast.error("Please enter the location"); return; }
     if (!uploadedPhotoUrl) { toast.error("Please upload a photo"); return; }
     try {
       setLoading(true);
       const response = await createReport({
         itemCategory: itemCategory.trim(),
-        location: { address: location.address, lat: location.lat, lng: location.lng },
+        location: location.trim(),
         description: description.trim(),
         imageUrl: uploadedPhotoUrl,
       });
@@ -77,7 +70,7 @@ export default function ReportLostItemPage() {
     }
   };
 
-  const handleClear = () => { setItemCategory(""); setLocation(null); setDescription(""); handleRemovePhoto(); };
+  const handleClear = () => { setItemCategory(""); setLocation(""); setDescription(""); handleRemovePhoto(); };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -124,8 +117,14 @@ export default function ReportLostItemPage() {
             className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-[#1B2A4F] focus:outline-none transition" />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-3">Location <span className="text-[#E85D4A]">*</span></label>
-          <MapLocationPicker value={location} onChange={setLocation} />
+          <label className="block text-sm font-semibold text-gray-900 mb-2">Location <span className="text-[#E85D4A]">*</span></label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="e.g., Kathmandu, Nepal"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-[#1B2A4F] focus:outline-none transition"
+          />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-900 mb-2">
@@ -138,7 +137,7 @@ export default function ReportLostItemPage() {
           <p className="text-xs text-gray-500 mt-1">{description.length}/500 characters</p>
         </div>
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={loading || uploading || !uploadedPhotoUrl || !location}
+          <button type="submit" disabled={loading || uploading || !uploadedPhotoUrl || !location.trim()}
             className="flex-1 bg-[#1B2A4F] text-white px-6 py-3 rounded-lg hover:bg-[#233459] transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed">
             {loading ? "Submitting..." : "Submit Report"}
           </button>

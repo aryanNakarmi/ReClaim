@@ -10,7 +10,7 @@ export class ChatService {
 
   async getChatByUserId(userId: string): Promise<IChat | null> {
     return chatRepository.getChatByUserId(userId);
-  }
+  } 
 
   async getChatById(chatId: string): Promise<IChat | null> {
     return chatRepository.getChatById(chatId);

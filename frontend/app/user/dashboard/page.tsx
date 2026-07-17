@@ -164,7 +164,7 @@ export default function DashboardPage() {
                     {report.itemCategory}
                   </h3>
                   <p className="text-gray-500 text-sm flex items-center gap-1">
-                    {report.location.address}
+                    {report.location}
                   </p>
                   {report.description && (
                     <p className="text-gray-600 text-sm mt-2 line-clamp-2">

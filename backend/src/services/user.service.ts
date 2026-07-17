@@ -9,7 +9,7 @@ import { sendEmail } from "../config/email";
 
 const CLIENT_URL = process.env.CLIENT_URL as string;
 
-let userRepository = new UserRepository();
+let userRepository = new UserRepository(); 
 
 export class UserService {
  async createUser(data: CreateUserDTO) {

@@ -7,11 +7,10 @@ export const LostItemSchema = z.object({
     .min(2, "Item category must be at least 2 characters")
     .trim(),
 
-  location: z.object({
-    address: z.string().min(3, "Location address is required").trim(),
-    lat: z.number(),
-    lng: z.number(),
-  }),
+  location: z
+    .string()
+    .min(3, "Location is required")
+    .trim(),
 
   description: z
     .string()

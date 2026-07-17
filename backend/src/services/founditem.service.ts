@@ -23,7 +23,7 @@ export class FoundItemService {
       const postData: Partial<IFoundItem> = {
         itemCategory: data.itemCategory,
         condition: data.condition as "New" | "Like New" | "Good" | "Fair" | "Damaged",
-        brandColor: data.brandColor,
+        brandColor: data.brandColor, 
         estimatedValue: data.estimatedValue,
         location: data.location,
         description: data.description,

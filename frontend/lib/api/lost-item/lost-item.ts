@@ -5,11 +5,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`;
 export interface LostItemReport {
   _id: string;
   itemCategory: string;
-  location: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
+  location: string;
   description?: string;
   imageUrl: string;
   status: "pending" | "approved" | "rejected";
@@ -79,11 +75,7 @@ export const getReportById = async (reportId: string) => {
 
 export const createReport = async (reportData: {
   itemCategory: string;
-  location: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
+  location: string;
   description?: string;
   imageUrl: string;
 }) => {

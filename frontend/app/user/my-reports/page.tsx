@@ -167,7 +167,7 @@ export default function MyReportsPage() {
                   {/* ✅ Fixed: access .address */}
                   <p className="text-gray-500 text-sm flex items-center gap-1 mb-3">
                     <HiMapPin size={14} />
-                    <span className="line-clamp-1">{report.location.address}</span>
+                    <span className="line-clamp-1">{report.location}</span>
                   </p>
                   {report.description && (
                     <p className="text-gray-600 text-sm line-clamp-2 mb-3 leading-relaxed">
@@ -261,17 +261,7 @@ export default function MyReportsPage() {
               {/* ✅ Fixed: access .address + Google Maps link */}
               <div className="flex items-start gap-2 text-gray-600 mb-6 font-medium">
                 <HiMapPin size={20} className="text-[#E85D4A] shrink-0 mt-0.5" />
-                <div>
-                  <p>{selectedReport.location.address}</p>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${selectedReport.location.lat}&mlon=${selectedReport.location.lng}#map=18/${selectedReport.location.lat}/${selectedReport.location.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#E85D4A] font-semibold hover:underline"
-                  >
-                    Open on map ↗
-                  </a>
-                </div>
+                <p>{selectedReport.location}</p>
               </div>
 
               {selectedReport.description && (
