@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ReClaim",
   description: "Lost & Found Items Platform — Reunite What's Yours",
-  icons: "/images/logo.png"
+  icons: "/images/lostnfound.png"
 };
 
 export default function RootLayout({

@@ -56,7 +56,7 @@ export default function DashboardPage() {
     <>
       <div className="relative w-full h-64 md:h-96 rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/images/heropup.jpg"
+          src="/images/lostnfound.png"
           alt="Help reunite lost items"
           fill
           loading="eager"
