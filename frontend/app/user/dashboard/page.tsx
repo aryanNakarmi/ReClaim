@@ -2,16 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, Fragment, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { HiArrowRight } from "react-icons/hi";
 import { toast } from "react-toastify";
 import { getMyReports, LostItemReport } from "@/lib/api/lost-item/lost-item";
-import { Dialog, Transition } from "@headlessui/react";
-
-
-
 export default function DashboardPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [reports, setReports] = useState<LostItemReport[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,67 +68,8 @@ export default function DashboardPage() {
             Every item has an owner. Help us reunite what's lost with who it belongs to.
           </p>
 
-          {/* Button on bottom-left */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="self-start bg-[#E85D4A] text-white px-5 py-2 rounded font-semibold hover:bg-[#d04a38] transition text-sm"
-          >
-            Learn More
-          </button>
         </div>
       </div>
-
-      {/* ===== MODAL ===== */}
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="fixed inset-0 z-50"
-          onClose={() => setIsModalOpen(false)}
-        >
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/50" />
-          </Transition.Child>
-
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-                <Dialog.Title className="text-xl font-bold text-gray-900">
-                  Help Reunite
-                </Dialog.Title>
-
-                <Dialog.Description className="mt-2 text-gray-700">
-                  Every item tells a story. Report what you found or browse lost items to help someone reclaim what matters to them.
-                </Dialog.Description>
-
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="bg-[#E85D4A] text-white px-4 py-2 rounded hover:bg-[#d04a38] transition text-sm font-semibold"
-                  >
-                    Close
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </Dialog>
-      </Transition>
 
       {/* ===== BROWSE ITEMS BAR ===== */}
       <div className="flex items-center justify-between bg-white border border-gray-200 rounded p-4">
