@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import z from "zod";
 
 let userService = new UserService();
-
+ 
 export class AuthController {
     async register(req: Request, res: Response) {
         try {

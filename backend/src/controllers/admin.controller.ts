@@ -2,7 +2,7 @@
     import { Request, Response } from "express";
 
     let userService = new UserService();
-
+ 
     export class AdminController {
         async createUser(req: Request, res: Response) {
             try {
