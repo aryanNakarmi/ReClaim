@@ -9,7 +9,7 @@ export interface IClaimRequest {
   proofDescription: string;
   requestedAt: Date;
 }
-
+ 
 export interface IFoundItem extends Document {
   itemCategory: string;
   condition: "New" | "Like New" | "Good" | "Fair" | "Damaged";

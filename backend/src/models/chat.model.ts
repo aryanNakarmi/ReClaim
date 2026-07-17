@@ -8,7 +8,7 @@ export interface IChat extends Document {
   lastMessageAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-}
+} 
 
 const ChatSchema = new Schema<IChat>(
   {

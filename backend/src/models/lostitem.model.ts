@@ -14,7 +14,7 @@ const LostItemSchema: Schema = new Schema(
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   },
   { timestamps: true }
-);
+); 
 
 export interface ILostItem extends Document {
   _id: mongoose.Types.ObjectId;

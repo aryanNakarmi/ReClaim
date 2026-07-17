@@ -12,7 +12,7 @@ const UserSchema: Schema = new Schema<UserType>(
         profilePicture: {
             type: String,
             default: null
-        },
+        }, 
         role: {
             type: String,
             enum: ['user', 'admin'],
