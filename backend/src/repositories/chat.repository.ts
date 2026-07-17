@@ -1,7 +1,7 @@
 import { ChatModel, IChat, MessageModel, IMessage } from "../models/chat.model";
 
 export interface IChatRepository {
-  getOrCreateChat(userId: string): Promise<IChat>;
+  getOrCreateChat(userId: string): Promise<IChat>; 
   getChatByUserId(userId: string): Promise<IChat | null>;
   getChatById(chatId: string): Promise<IChat | null>;
   getAllChats(): Promise<IChat[]>;
