@@ -1,6 +1,6 @@
 import { LostItemModel, ILostItem } from "../models/lostitem.model";
 import { LostItemType } from "../types/lostitem.type";
-
+ 
 export interface ILostItemRepository {
   createReport(reportData: Partial<LostItemType & { reportedBy: string }>): Promise<ILostItem>;
   getReportById(id: string): Promise<ILostItem | null>;
