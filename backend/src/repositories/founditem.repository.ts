@@ -1,6 +1,6 @@
 import { FoundItemModel, IFoundItem } from "../models/founditem.model";
 import { FoundItemType } from "../types/founditem.type";
-
+ 
 export interface IFoundItemRepository {
   createPost(postData: Partial<FoundItemType>): Promise<IFoundItem>;
   getPostById(id: string): Promise<IFoundItem | null>;
