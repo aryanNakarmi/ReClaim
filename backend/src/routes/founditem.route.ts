@@ -11,7 +11,7 @@ router.get('/', controller.getAllPosts);
 router.get('/category/:category', controller.getPostsByCategory);
 router.get('/my-claims', protect, controller.getMyClaims);
 router.get('/:id', controller.getPostById);
-
+ 
 // Admin routes
 router.post('/', protect, adminMiddleware, uploadImage.array('foundItem', 5), controller.createPost);
 router.put('/:id', protect, adminMiddleware, uploadImage.array('foundItem', 5), controller.updatePost);

@@ -12,4 +12,4 @@ router.delete('/users/:id', protect, adminMiddleware, controller.deleteUser);
 router.get('/users', protect, adminMiddleware, controller.getAllUsers);
 router.get('/users/:id', protect, adminMiddleware, controller.getUserById);
 
-export default router;  
+export default router;   

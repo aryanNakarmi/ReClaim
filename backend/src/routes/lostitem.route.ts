@@ -13,7 +13,7 @@ router.post(
   uploadImage.single('lostItem'),
   controller.uploadReportPhoto
 );
-
+ 
 router.get('/all', protect, adminMiddleware, controller.getAllReports);
 router.get('/my-reports', protect, controller.getMyReports);
 router.post('/', protect, controller.createReport);

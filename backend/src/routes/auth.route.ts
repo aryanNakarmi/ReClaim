@@ -10,7 +10,7 @@ router.post("/register", authController.register)
 router.post("/login", authController.login)
 router.post("/request-password-reset", authController.requestPasswordReset)
 router.put(
-  "/update-profile",
+  "/update-profile", 
   authorizedMiddleware,
   uploadImage.single("profilePicture"),
   authController.updateProfile,

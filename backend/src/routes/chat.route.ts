@@ -11,7 +11,7 @@ router.get("/my-chat", protect, controller.getMyChat);
 
 // User: send a message (chatId resolved server-side)
 router.post("/my-chat/messages", protect, controller.sendMessage);
-
+ 
 // ===================== ADMIN ROUTES =====================
 // Admin: see all conversations (inbox)
 router.get("/", protect, adminMiddleware, controller.getAllChats);
