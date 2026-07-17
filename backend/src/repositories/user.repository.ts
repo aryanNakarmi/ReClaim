@@ -5,7 +5,7 @@ export interface IUserRepository {
     getUserById(id: string): Promise<IUser | null>;
     getAllUsers({ page, size, search }: { page: number, size: number, search?: string }): Promise<{ users: IUser[], totalUsers: number }>;  // ← CHANGE THIS LINE
     updateUser(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
-    deleteUser(id: string): Promise<boolean>;
+    deleteUser(id: string): Promise<boolean>; 
 }
 // mongoDb Implementation of UserRepository
 export class UserRepository implements IUserRepository {
