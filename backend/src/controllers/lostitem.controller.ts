@@ -206,8 +206,7 @@ export class LostItemController {
       const user = report.reportedBy as any;
       if (user?.email) {
         const isApproved = status === "approved";
-        const locationAddress =
-          (report.location as any)?.address || "the reported location";
+        const locationAddress = report.location || "the reported location";
 
         const subject = isApproved
           ? `Your Lost Item Report Has Been Approved — ReClaim`
