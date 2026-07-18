@@ -7,7 +7,7 @@ import { HiEye } from "react-icons/hi";
 export interface User {
   _id: string;
   fullName?: string;
-  email: string;
+  email: string; 
   phoneNumber?: string;
   profilePicture?: string | null;
   role: string;
