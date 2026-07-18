@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => { 
     if (!loading && !user) {
       router.push("/login");
     }
