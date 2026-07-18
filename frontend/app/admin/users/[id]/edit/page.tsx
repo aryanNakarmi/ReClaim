@@ -5,7 +5,7 @@ export default async function EditUserPage({
 }: {
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params;
+    const { id } = await params; 
     
     return (
         <div className="space-y-4">
