@@ -1,4 +1,4 @@
-import z from "zod";
+ import z from "zod";
 
 export const FoundItemSchema = z.object({
   itemCategory: z
@@ -12,7 +12,7 @@ export const FoundItemSchema = z.object({
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
     ),
-
+ 
   condition: z
     .enum(["New", "Like New", "Good", "Fair", "Damaged"])
     .refine(

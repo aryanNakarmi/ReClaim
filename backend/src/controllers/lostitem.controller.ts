@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import z from "zod";
 import fs from "fs";
 import path from "path";
-import { sendEmail } from "../config/email";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -201,47 +200,6 @@ export class LostItemController {
 
       report.status = status;
       await report.save();
-
-      // ── Email notification ──
-      const user = report.reportedBy as any;
-      if (user?.email) {
-        const isApproved = status === "approved";
-        const locationAddress = report.location || "the reported location";
-
-        const subject = isApproved
-          ? `Your Lost Item Report Has Been Approved — ReClaim`
-          : `Your Lost Item Report Has Been Rejected — ReClaim`;
-
-        const html = `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-            <div style="background:${isApproved ? "linear-gradient(135deg,#22c55e,#16a34a)" : "linear-gradient(135deg,#ef4444,#dc2626)"};padding:30px;border-radius:12px 12px 0 0;text-align:center;">
-              <h1 style="color:white;margin:0;font-size:26px;">${isApproved ? "Report Approved!" : "Report Rejected"}</h1>
-            </div>
-            <div style="background:#f9fafb;padding:30px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;">
-              <p style="font-size:16px;color:#374151;">Hi <strong>${user.fullName}</strong>,</p>
-              <p style="color:#6b7280;line-height:1.6;">
-                Your lost item report for a <strong>${report.itemCategory}</strong> at 
-                <strong>${locationAddress}</strong> has been 
-                <span style="color:${isApproved ? "#16a34a" : "#dc2626"};font-weight:bold;">${status}</span>.
-              </p>
-              <div style="background:${isApproved ? "#dcfce7" : "#fee2e2"};border-left:4px solid ${isApproved ? "#22c55e" : "#ef4444"};padding:15px;border-radius:4px;margin:20px 0;">
-                <p style="margin:0;color:${isApproved ? "#166534" : "#991b1b"};">
-                  ${
-                    isApproved
-                      ? "We'll review the information and reach out if we have a match. Thank you for using ReClaim!"
-                      : "This may be due to insufficient information. You're welcome to submit a new report with clearer details."
-                  }
-                </p>
-              </div>
-              <p style="color:#9ca3af;font-size:13px;margin-top:30px;">— The ReClaim Team</p>
-            </div>
-          </div>
-        `;
-
-        sendEmail(user.email, subject, html).catch((err) =>
-          console.error("Failed to send status email:", err.message),
-        );
-      }
 
       return res
         .status(200)

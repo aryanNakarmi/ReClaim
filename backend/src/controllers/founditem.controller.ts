@@ -3,7 +3,6 @@ import { foundItemService } from "../services/founditem.service";
 import { FoundItemModel } from "../models/founditem.model";
 import { UserModel } from "../models/user.model";
 import { CreateFoundItemDTO, UpdateFoundItemDTO, UpdateFoundItemStatusDTO } from "../dtos/founditem.dto";
-import { sendEmail } from "../config/email";
 import z from "zod";
 
 interface AuthRequest extends Request {
@@ -97,50 +96,6 @@ export class FoundItemController {
       if (!parsedData.success) return res.status(400).json({ success: false, message: z.prettifyError(parsedData.error) });
 
       const post = await foundItemService.updatePostStatus(id, parsedData.data);
-
-      // ── Send notification email to the claiming user ──
-      if (status === "Claimed" && claimedBy) {
-        try {
-          const fullPost = await FoundItemModel.findById(id);
-          const requester = fullPost?.claimRequests?.find(
-            (r) => r.userId.toString() === claimedBy.toString()
-          );
-          const claimedPost = await FoundItemModel.findById(id).populate("claimedBy", "fullName email");
-          const claimedUser = (claimedPost?.claimedBy as any) || requester;
-
-          if (claimedUser?.email) {
-            const html = `
-              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-                <div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);padding:30px;border-radius:12px 12px 0 0;text-align:center;">
-                  <h1 style="color:white;margin:0;font-size:26px;">Item Claimed!</h1>
-                </div>
-                <div style="background:#f9fafb;padding:30px;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;">
-                  <p style="font-size:16px;color:#374151;">Hi <strong>${claimedUser.fullName || requester?.fullName || "there"}</strong>,</p>
-                  <p style="color:#6b7280;line-height:1.6;">
-                    Great news! Your claim for the
-                    <strong>${(post as any).brandColor} (${(post as any).itemCategory})</strong>
-                    has been <span style="color:#1d4ed8;font-weight:bold;">approved</span>.
-                  </p>
-                  <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:15px;border-radius:4px;margin:20px 0;">
-                    <p style="margin:0;color:#1e40af;font-weight:600;">
-                      Our team will contact you soon with next steps for picking up your item.
-                      Thank you for using ReClaim!
-                    </p>
-                  </div>
-                  <p style="color:#9ca3af;font-size:13px;margin-top:30px;">— The ReClaim Team</p>
-                </div>
-              </div>
-            `;
-            sendEmail(
-              claimedUser.email || requester?.email,
-              `Your Claim is Approved — ${(post as any).brandColor} is yours!`,
-              html
-            ).catch((err) => console.error("Failed to send claim email:", err.message));
-          }
-        } catch (emailErr: any) {
-          console.error("Email lookup failed:", emailErr.message);
-        }
-      }
 
       return res.status(200).json({ success: true, message: "Found item status updated successfully", data: post });
     } catch (error: any) {
