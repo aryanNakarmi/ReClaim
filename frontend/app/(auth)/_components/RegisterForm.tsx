@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { RegisterData, registerSchema } from "../schema";
+import { RegisterData, registerSchema } from "../schema"; 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useTransition } from "react";
 import Link from "next/link";

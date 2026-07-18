@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { handleResetPassword } from "@/lib/actions/auth-action";
+import { handleResetPassword } from "@/lib/actions/auth-action"; 
 import { toast } from "react-toastify"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
