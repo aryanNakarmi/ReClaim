@@ -8,7 +8,7 @@ async function startServer() {
  await connectDatabase();
  
  const httpServer = createServer(app);
-  initSocket(httpServer);
+  initSocket(httpServer); 
 
   httpServer.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
