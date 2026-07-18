@@ -22,7 +22,7 @@ interface Message {
 
 interface Chat {
   _id: string;
-  userId: { _id: string; fullName: string; email: string; profilePicture?: string };
+  userId: { _id: string; fullName: string; email: string; profilePicture?: string; role?: string };
   lastMessage?: string;
   lastMessageAt?: string;
   createdAt: string;
@@ -150,16 +150,18 @@ export default function AdminChatPage() {
     });
 
     return () => { socket.disconnect(); };
-  }, []);
-
-  const fetchChats = useCallback(async () => {
+  }, []);    const fetchChats = useCallback(async () => {
     setLoadingChats(true);
     try {
       const res = await axios.get("/api/v1/chats");
       if (res.data.success) {
-        setChats(res.data.data);
+        // Safety filter: exclude chats with admin users
+        const filteredChats = (res.data.data || []).filter(
+          (c: any) => c.userId?.role !== "admin"
+        );
+        setChats(filteredChats);
         const initialUnread: Record<string, number> = {};
-        (res.data.data || []).forEach((c: any) => {
+        filteredChats.forEach((c: any) => {
           if (c.unreadCount > 0) initialUnread[c._id] = c.unreadCount;
         });
         setUnreadMap(initialUnread);

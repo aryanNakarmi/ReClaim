@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { chatService } from "../services/chat.service";
 import { getIO } from "../socket/socket";
+import { UserModel } from "../models/user.model";
 import z from "zod";
 
 interface AuthRequest extends Request {
@@ -142,6 +143,15 @@ export class ChatController {
       const { userId } = req.params;
       if (!userId) {
         return res.status(400).json({ success: false, message: "User ID is required" });
+      }
+
+      // Prevent starting chats with admin users
+      const targetUser = await UserModel.findById(userId).select("role");
+      if (!targetUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      if (targetUser.role === "admin") {
+        return res.status(400).json({ success: false, message: "Cannot start a conversation with an admin" });
       }
 
       const chat = await chatService.getOrCreateChat(userId);

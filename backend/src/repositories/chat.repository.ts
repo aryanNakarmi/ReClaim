@@ -44,12 +44,17 @@ export class ChatRepository implements IChatRepository {
 
  async getAllChats(): Promise<any[]> {
   const chats = await ChatModel.find()
-    .populate("userId", "fullName email profilePicture")
+    .populate("userId", "fullName email profilePicture role")
     .sort({ lastMessageAt: -1, createdAt: -1 });
+
+  // Filter out chats with admin users (admin-to-admin chats are not supported)
+  const filteredChats = chats.filter(
+    (chat) => chat.userId && (chat.userId as any).role !== "admin"
+  );
 
   // For each chat, count unread messages from users
   const chatsWithUnread = await Promise.all(
-    chats.map(async (chat) => {
+    filteredChats.map(async (chat) => {
       const unreadCount = await MessageModel.countDocuments({
         chatId: chat._id,
         senderRole: "user",
