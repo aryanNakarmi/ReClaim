@@ -3,7 +3,7 @@ import z from "zod";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
-export const UserSchema = z.object({
+export const UserSchema = z.object({ 
     email: z.email({ message: "Enter a valid email" }),
     password: z.string()
         .min(6, "Password must be at least 6 characters long")
