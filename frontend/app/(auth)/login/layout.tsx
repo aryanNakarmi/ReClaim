@@ -6,7 +6,7 @@ export default function LoginLayout({children}: {children: React.ReactNode}) {
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-[#1B2A4F] text-sm font-bold">R</div>
                         <span className="text-lg font-bold">ReClaim</span>
-                    </div>
+                    </div> 
                 </div>
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold leading-tight">Welcome back.</h2>

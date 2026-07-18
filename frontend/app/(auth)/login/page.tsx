@@ -9,6 +9,6 @@
                 </div>
                 <LoginForm/>
 
-            </div>
+            </div> 
         );
     }
