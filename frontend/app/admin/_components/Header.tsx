@@ -10,7 +10,7 @@ const NAV_LINKS = [
     { href: "/about", label: "About" },
 ];
 
-export default function Header() {
+export default function Header() { 
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
 

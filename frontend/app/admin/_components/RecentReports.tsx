@@ -12,7 +12,7 @@ interface Report {
   createdAt: string;
   reportedBy?: {
     fullName: string;
-  };
+  };  
   imageUrl?: string;
 }
 

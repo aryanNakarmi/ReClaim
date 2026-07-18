@@ -8,11 +8,11 @@ interface StatCardProps {
   value: string | number;
   icon: ReactNode;
   color: "blue" | "orange" | "green" | "red" | "purple" | "indigo";
-  trend?: number;
+  trend?: number; 
   trendLabel?: string;
   subtext?: string;
 }
-
+     
 export default function StatCard({
   title,
   value,  
