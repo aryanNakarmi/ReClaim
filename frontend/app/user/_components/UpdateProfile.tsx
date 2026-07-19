@@ -6,7 +6,7 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import { handleUpdateProfile } from "@/lib/actions/auth-action";
 import { z } from "zod";
-
+ 
 // Email removed from schema — it cannot be changed
 const updateUserSchema = z.object({
   fullName: z.string().optional(),
