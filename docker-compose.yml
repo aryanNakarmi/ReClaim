@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ── MongoDB ──
+  mongodb:
+    image: mongo:7
+    container_name: reclaim-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: reclaim
+    networks:
+      - reclaim-network
+
+  # ── Backend API ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reclaim-backend
+    restart: unless-stopped
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - MONGODB_URI=mongodb://mongodb:27017/reclaim
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - CLIENT_URL=http://localhost:3000
+      - NODE_ENV=production
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USER=${EMAIL_USER:-}
+      - EMAIL_PASS=${EMAIL_PASS:-}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
+    depends_on:
+      - mongodb
+    networks:
+      - reclaim-network
+    volumes:
+      - uploads:/app/public
+
+volumes:
+  mongodb_data:
+  uploads:
+
+networks:
+  reclaim-network:
+    driver: bridge
