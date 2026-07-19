@@ -8,14 +8,33 @@ interface UserData {
     email: string;
     role: string;
     createdAt: string;
-    updatedAt: string;
+    updatedAt: string; 
     [key: string]: any;
 }
+
+// Auth token cookie — NOT httpOnly so client-side JS can read it for API headers
+const AUTH_COOKIE_OPTIONS = {
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 30 * 24 * 60 * 60, // 30 days
+};
+
+// User data cookie — httpOnly since it's only read server-side via getAuthToken()/getUserData()
+const USER_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 30 * 24 * 60 * 60,
+};
+
 export const setAuthToken = async (token: string) => {
     const cookieStore = await cookies();
     cookieStore.set({
         name: 'auth_token',
         value: token,
+        ...AUTH_COOKIE_OPTIONS,
     })
 }
 export const getAuthToken = async () => {
@@ -27,6 +46,7 @@ export const setUserData = async (userData: UserData) => {
     cookieStore.set({
         name: 'user_data',
         value: JSON.stringify(userData),
+        ...USER_COOKIE_OPTIONS,
     })
 }
 export const getUserData = async (): Promise<UserData | null> => {
