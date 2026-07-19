@@ -5,13 +5,13 @@ import { register, login, updateProfile, requestPasswordReset, resetPassword } f
 import { clearAuthCookies, setAuthToken, setUserData } from '@/lib/cookie';
 import { revalidatePath } from 'next/cache';
 
-export const handleRegister = async (data: RegisterData) => {
+export const handleRegister = async (data: RegisterData & { captchaToken?: string }) => {
     try {
         const response = await register(data)
         if (response.success) {
             return {
                 success: true,
-                message: 'Registration successful',
+                message: 'Registration successful', 
                 data: response.data 
             }
         }
@@ -24,7 +24,7 @@ export const handleRegister = async (data: RegisterData) => {
     }
 }
 
-export const handleLogin = async (data: LoginData) => {
+export const handleLogin = async (data: LoginData & { captchaToken?: string }) => {
     try {
         const response = await login(data)
         if (response.success) {

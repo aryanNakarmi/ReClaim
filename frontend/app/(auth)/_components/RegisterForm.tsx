@@ -9,20 +9,25 @@ import Link from "next/link";
 import Image from "next/image";
 import { handleRegister } from "@/lib/actions/auth-action";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import { Turnstile } from '@marsidev/react-turnstile'
+import PasswordStrengthMeter from './PasswordStrengthMeter'
 
 export default function RegisterForm(){
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string>("");
 
     const{
         register,
         handleSubmit,
+        watch,
         formState: {errors, isSubmitting}
     } = useForm<RegisterData>({
         resolver: zodResolver(registerSchema),
         mode: "onSubmit",
     });
+    const passwordValue = watch("password");
     const [pending, setTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +36,7 @@ export default function RegisterForm(){
         setTransition(async () => {
             try {
 
-                const response = await handleRegister(values);
+                const response = await handleRegister({ ...values, captchaToken });
                 if (!response.success) {
                     throw new Error(response.message);
                 }
@@ -166,6 +171,9 @@ export default function RegisterForm(){
                             <p className="text-xs text-[#E85D4A]">{errors.password.message}</p>
                         )}
                         </div>
+
+                        {/* Password strength meter */}
+                        <PasswordStrengthMeter password={passwordValue} />
                     </div>
 
                     {/* Confirm Password */}
@@ -208,11 +216,27 @@ export default function RegisterForm(){
                 {/* Register Button */}
                 <button
                 type="submit"
-                disabled={isSubmitting || pending}
+                disabled={isSubmitting || pending || !captchaToken}
                 className="h-12 w-full rounded-full text-white text-base font-bold hover:opacity-90 disabled:opacity-60 transition-colors mt-2 shadow-lg"
                 style={{backgroundColor: '#1B2A4F'}}>
                 {isSubmitting || pending ? "Creating account..." : "Register"}
                 </button>
+
+                {/* CAPTCHA */}
+                <div className="mt-4">
+                  <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+                    <div className="flex justify-center">
+                      <Turnstile
+                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                        onSuccess={(token: string) => setCaptchaToken(token)}
+                        options={{ theme: "light", size: "normal" }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-center text-[10px] text-gray-400">
+                      Protected by Cloudflare Turnstile
+                    </p>
+                  </div>
+                </div>
 
                 {/* Login Link */}
                 <div className="mt-3 text-center text-sm text-gray-600">

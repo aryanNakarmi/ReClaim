@@ -2,7 +2,7 @@ import { LoginData, RegisterData } from "@/app/(auth)/schema"
 import axios from "./axios"
 import { API } from "./endpoints"
 
-export const register = async (registerData: RegisterData) => {
+export const register = async (registerData: RegisterData & { captchaToken?: string }) => {
     try {
         const response = await axios.post(API.AUTH.REGISTER, registerData)
         return response.data
@@ -11,7 +11,7 @@ export const register = async (registerData: RegisterData) => {
     }
 }
 
-export const login = async (loginData: LoginData) => {
+export const login = async (loginData: LoginData & { captchaToken?: string }) => {
     try {
         const response = await axios.post(API.AUTH.LOGIN, loginData)
         return response.data

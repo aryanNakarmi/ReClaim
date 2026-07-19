@@ -10,6 +10,7 @@ import { LoginData, loginSchema } from "../schema";
 import { handleLogin } from "@/lib/actions/auth-action";
 import { useAuth } from "@/context/AuthContext";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export default function LoginForm(){
 
@@ -24,6 +25,7 @@ export default function LoginForm(){
     });
     
     const [showPassword, setShowPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string>("");
 
     const [pending, setTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function LoginForm(){
     const { setUser, setIsAuthenticated } = useAuth();
 
     const submit = async (values: LoginData) => {
-        const res = await handleLogin(values);
+        const res = await handleLogin({ ...values, captchaToken });
         if (!res.success) return alert(res.message);
 
         setUser(res.data); 
@@ -133,11 +135,27 @@ export default function LoginForm(){
                 {/* Login Button */}
                 <button
                 type="submit"
-                disabled={isSubmitting || pending}
+                disabled={isSubmitting || pending || !captchaToken}
                 className="h-12 w-full rounded-full text-white text-base font-bold hover:opacity-90 disabled:opacity-60 transition-colors mt-3 shadow-lg"
                 style={{backgroundColor: '#1B2A4F'}}>
                 {isSubmitting || pending ? "Logging in..." : "Login"}
                 </button>
+
+                {/* CAPTCHA */}
+                <div className="mt-4">
+                  <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+                    <div className="flex justify-center">
+                      <Turnstile
+                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                        onSuccess={(token: string) => setCaptchaToken(token)}
+                        options={{ theme: "light", size: "normal" }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-center text-[10px] text-gray-400">
+                      Protected by Cloudflare Turnstile
+                    </p>
+                  </div>
+                </div>
 
 
                 {/* Sign Up Link */}
