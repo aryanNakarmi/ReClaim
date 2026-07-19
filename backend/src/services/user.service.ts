@@ -8,6 +8,9 @@ import { IUser } from "../models/user.model";
 import { sendEmail } from "../config/email";
 
 const CLIENT_URL = process.env.CLIENT_URL as string;
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MINUTES = 15;
+const PASSWORD_HISTORY_LIMIT = 5; // Prevent reuse of last 5 passwords
 
 let userRepository = new UserRepository(); 
 
@@ -26,36 +29,94 @@ export class UserService {
         email: data.email,
         password: hashedPassword,
         phoneNumber: data.phoneNumber ?? undefined,
-        profilePicture: data.profilePicture ?? undefined, // <-- fix here
-        role: data.role ?? "user"
+        profilePicture: data.profilePicture ?? undefined,
+        role: data.role ?? "user",
+        loginAttempts: 0,
+        lockUntil: undefined,
+        mfaEnabled: false,
+        passwordHistory: [hashedPassword],
+        passwordChangedAt: new Date(),
     };
 
     const newUser = await userRepository.createUser(userData);
     return newUser;
 }
 
-
-    async   loginUser(data: LoginUserDTO){
-        const user =  await userRepository.getUserByEmail(data.email);
-        if(!user){
-            throw new HttpError(404, "User not found");
-        }
-        // compare password
-        const validPassword = await bcryptjs.compare(data.password, user.password);
-        // plaintext, hashed
-        if(!validPassword){
-            throw new HttpError(401, "Invalid credentials");
-        }
-        // generate jwt
-        const payload = { // user identifier
-            id: user._id,
-            email: user.email,
-            fullName: user.fullName,
-            role: user.role
-        }
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' }); // 30 days
-        return { token, user }
+  /**
+   * Login with account lockout protection.
+   * Tracks failed attempts and locks account after MAX_LOGIN_ATTEMPTS.
+   */
+  async loginUser(data: LoginUserDTO): Promise<{ token?: string; user: IUser; requiresMFA?: boolean; tempToken?: string }> {
+    const user = await userRepository.getUserByEmail(data.email);
+    if (!user) {
+      throw new HttpError(404, 'User not found');
     }
+
+    // ── Check if account is locked ──
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingMinutes = Math.ceil(
+        (user.lockUntil.getTime() - Date.now()) / 60000
+      );
+      throw new HttpError(
+        423,
+        `Account locked. Try again in ${remainingMinutes} minute(s).`
+      );
+    }
+
+    // ── Compare password ──
+    const validPassword = await bcryptjs.compare(data.password, user.password);
+
+    if (!validPassword) {
+      // Increment failed attempts
+      const attempts = (user.loginAttempts || 0) + 1;
+      const updateData: any = { loginAttempts: attempts };
+
+      // Lock account if exceeded max attempts
+      if (attempts >= MAX_LOGIN_ATTEMPTS) {
+        updateData.lockUntil = new Date(
+          Date.now() + LOCK_DURATION_MINUTES * 60 * 1000
+        );
+        await userRepository.updateUser(user._id.toString(), updateData);
+        throw new HttpError(
+          423,
+          `Account locked for ${LOCK_DURATION_MINUTES} minutes due to too many failed attempts.`
+        );
+      }
+
+      await userRepository.updateUser(user._id.toString(), updateData);
+      throw new HttpError(401, 'Invalid credentials');
+    }
+
+    // ── Successful login — reset attempts ──
+    if (user.loginAttempts && user.loginAttempts > 0) {
+      await userRepository.updateUser(user._id.toString(), {
+        loginAttempts: 0,
+        lockUntil: undefined,
+      });
+    }
+
+    // ── Check MFA ──
+    if (user.mfaEnabled) {
+      // Issue a short-lived temporary token for MFA verification
+      const tempPayload = {
+        id: user._id,
+        email: user.email,
+        purpose: 'mfa' as const,
+      };
+      const tempToken = jwt.sign(tempPayload, JWT_SECRET, { expiresIn: '5m' });
+      return { user, requiresMFA: true, tempToken };
+    }
+
+    // generate jwt
+    const payload = {
+      id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+    return { token, user };
+  }
 
     async getAllUsers({ page, size, search }: { page?: string | undefined, size?: string | undefined, search?: string | undefined }) {
         const currentPage = page ? parseInt(page) : 1;
@@ -130,9 +191,24 @@ async updateUser(id: string, data: Partial<CreateUserDTO>) {
             role: data.role ?? user.role
         };
 
-        // Hash password if provided
+        // Hash password if provided with reuse protection
         if (data.password) {
-            updateData.password = await bcryptjs.hash(data.password, 10);
+            // ── Password reuse prevention ──
+            const history = user.passwordHistory || [];
+            for (const oldHash of history) {
+                const isReused = await bcryptjs.compare(data.password, oldHash);
+                if (isReused) {
+                    throw new HttpError(400, "You cannot reuse a recent password. Please choose a different password.");
+                }
+            }
+
+            const hashedPassword = await bcryptjs.hash(data.password, 10);
+            updateData.password = hashedPassword;
+
+            // Update password history (keep last 5)
+            const updatedHistory = [...history, hashedPassword].slice(-PASSWORD_HISTORY_LIMIT);
+            (updateData as any).passwordHistory = updatedHistory;
+            (updateData as any).passwordChangedAt = new Date();
         }
 
         const updatedUser = await userRepository.updateUser(id, updateData);
@@ -168,8 +244,26 @@ async updateUser(id: string, data: Partial<CreateUserDTO>) {
             if (!user) {
                 throw new HttpError(404, "User not found");
             }
+            
             const hashedPassword = await bcryptjs.hash(newPassword, 10);
-            await userRepository.updateUser(userId, { password: hashedPassword });
+
+            // ── Password reuse prevention ──
+            const history = user.passwordHistory || [];
+            for (const oldHash of history) {
+                const isReused = await bcryptjs.compare(newPassword, oldHash);
+                if (isReused) {
+                    throw new HttpError(400, "You cannot reuse a recent password. Please choose a different password.");
+                }
+            }
+
+            // Update password history (keep last 5)
+            const updatedHistory = [...history, hashedPassword].slice(-PASSWORD_HISTORY_LIMIT);
+
+            await userRepository.updateUser(userId, { 
+                password: hashedPassword,
+                passwordHistory: updatedHistory,
+                passwordChangedAt: new Date(),
+            });
             return user;
         } catch (error) {
             throw new HttpError(400, "Invalid or expired token");
