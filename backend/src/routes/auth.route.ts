@@ -2,13 +2,14 @@ import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { authorizedMiddleware, protect } from "../middleware/authorized.middleware";
 import uploadImage from "../middleware/multer.middleware";
+import { authLimiter, passwordResetLimiter } from "../middleware/rateLimiter.middleware";
 
 let authController = new AuthController();
 const router = Router();
 
-router.post("/register", authController.register) 
-router.post("/login", authController.login)
-router.post("/request-password-reset", authController.requestPasswordReset)
+router.post("/register", authLimiter, authController.register)
+router.post("/login", authLimiter, authController.login)
+router.post("/request-password-reset", passwordResetLimiter, authController.requestPasswordReset)
 router.put(
   "/update-profile", 
   authorizedMiddleware,
