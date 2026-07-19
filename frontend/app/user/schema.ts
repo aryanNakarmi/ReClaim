@@ -5,7 +5,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 export const updateUserSchema = z.object({
     firstName: z.string().min(2, { message: "Minimum 2 characters" }),
     lastName: z.string().min(2, { message: "Minimum 2 characters" }),
-    email: z.string(),
+    email: z.string(), 
     username: z.string().min(3, { message: "Minimum 3 characters" }),
     image: z
         .instanceof(File)
