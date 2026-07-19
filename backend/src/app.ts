@@ -8,31 +8,39 @@ import lostItemRoutes from './routes/lostitem.route';
 import foundItemRoutes from './routes/founditem.route';
 import adminRoutes from './routes/admin.route';
 import chatRoutes from './routes/chat.route';
+import mfaRoutes from './routes/mfa.route';
 import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import path from 'path';
 
 dotenv.config();
-//can use .env variable below this
-console.log(process.env.PORT);
 
 const app: Application = express();
-// const PORT: number = 3000;
 
+// ── Security Headers (Helmet) ──
+app.use(helmet());
 
-const corsOptions = {
-    origin:[ 
-        'http://localhost:3000', 'http://localhost:3003', 'http://localhost:3005',
-        'http://192.168.1.8:5050',
-        'http://10.12.23.20:5050',
-    ],
-    optionsSuccessStatus: 200,
-    credentials: true,
-};
+// ── CORS — restrict to known origins ──
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-    origin: '*',
-    credentials: true,
+  origin: (origin, cb) => {
+    // Allow requests with no origin (server-to-server, mobile apps, curl)
+    if (!origin || ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  },
+  credentials: true,
 }));
 
+// ── Request logging (morgan) ──
+app.use(morgan('combined'));
 
 app.use(bodyParser.json());
 
@@ -46,11 +54,10 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/lost-reports', lostItemRoutes);
 app.use('/api/v1/found-items', foundItemRoutes);
 app.use('/api/v1/chats', chatRoutes);
+app.use('/api/v1/mfa', mfaRoutes);
 
-
-
-app.get('/', (req:Request, res:Response) =>{
-      return res.status(200).json({ success: "true", message: "Welcome to the API" });
+app.get('/', (_req: Request, res: Response) => {
+  return res.status(200).json({ success: true, message: 'Welcome to the API' });
 });
 
 
