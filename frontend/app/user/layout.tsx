@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./_components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { HiMenu } from "react-icons/hi";
+import { HiMenu } from "react-icons/hi"; 
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
