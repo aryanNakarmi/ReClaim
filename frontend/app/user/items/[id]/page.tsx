@@ -7,7 +7,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { HiArrowLeft, HiHeart, HiCheckCircle, HiX } from "react-icons/hi";
 import axios from "@/lib/api/axios";
-
+ 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace("/api/v1", "") ||
   "http://localhost:5050";
