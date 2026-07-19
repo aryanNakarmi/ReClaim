@@ -10,7 +10,7 @@ import { useState } from "react";
 import { HiArrowLeft, HiCheckCircle } from "react-icons/hi";
 
 const RequestPasswordResetSchema = z.object({
-    email: z.email("Please enter a valid email address"),
+    email: z.string().email("Please enter a valid email address"),
 });
 
 type RequestPasswordResetDTO = z.infer<typeof RequestPasswordResetSchema>;
@@ -78,7 +78,7 @@ export default function RequestPasswordResetPage() {
                     <button
                         onClick={() => setSubmitted(false)}
                         className="w-full h-12 rounded-full text-white text-base font-bold hover:opacity-90 transition-colors shadow-lg"
-                        style={{ backgroundColor: '#FF8C69' }}
+                        style={{ backgroundColor: '#E85D4A' }}
                     >
                         Try Another Email
                     </button>
@@ -121,7 +121,7 @@ export default function RequestPasswordResetPage() {
                         text-gray-900
                         text-sm
                         placeholder:text-gray-500
-                        focus:border-orange-400
+                        focus:border-[#E85D4A]
                         focus:outline-none
                         transition-colors"
                         {...register("email")}
@@ -138,7 +138,7 @@ export default function RequestPasswordResetPage() {
                     type="submit"
                     disabled={isSubmitting}
                     className="h-12 w-full rounded-full text-white text-base font-bold hover:opacity-90 disabled:opacity-60 transition-colors mt-6 shadow-lg"
-                    style={{ backgroundColor: '#FF8C69' }}
+                    style={{ backgroundColor: '#E85D4A' }}
                 >
                     {isSubmitting ? "Sending..." : "Send Reset Link"}
                 </button>
@@ -148,7 +148,7 @@ export default function RequestPasswordResetPage() {
             <div className="text-center">
                 <Link
                     href="/login"
-                    className="text-orange-500 hover:text-orange-600 font-semibold text-sm flex items-center justify-center gap-1"
+                    className="text-[#E85D4A] hover:text-[#d04a38] font-semibold text-sm flex items-center justify-center gap-1"
                 >
                     <HiArrowLeft size={16} />
                     Back to Login
