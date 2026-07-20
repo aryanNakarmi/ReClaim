@@ -15,6 +15,7 @@ import {
   HiCog,
   HiLogout,
   HiX,
+  HiShieldCheck,
 } from "react-icons/hi";
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -69,6 +70,11 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       badge: unreadCount,
     },
     { href: "/user/profile", label: "Profile", icon: <HiUser size={22} /> },
+    {
+      href: "/user/profile/security",
+      label: "Security",
+      icon: <HiShieldCheck size={22} />,
+    },
     ...(user?.role === "admin"
       ? [
           {
