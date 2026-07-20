@@ -1,14 +1,18 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link"; 
+import Link from "next/link";
+import { toast } from "react-toastify";
+import { HiDownload, HiShieldCheck, HiPencil } from "react-icons/hi";
+import { exportUserData } from "@/lib/api/data";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -75,14 +79,39 @@ export default function ProfilePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-center gap-4 mt-6">
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
             <Link
               href="/user/profile/edit-profile"
-              className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-bold shadow-md transition"
+              className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-bold shadow-md transition flex items-center gap-2"
             >
+              <HiPencil size={20} />
               Edit Profile
             </Link>
-            
+            <Link
+              href="/user/profile/security"
+              className="px-6 py-3 border-2 border-[#1B2A4F] text-[#1B2A4F] rounded-lg hover:bg-[#1B2A4F] hover:text-white font-bold shadow-md transition flex items-center gap-2"
+            >
+              <HiShieldCheck size={20} />
+              Security
+            </Link>
+            <button
+              onClick={async () => {
+                setExporting(true);
+                try {
+                  await exportUserData();
+                  toast.success("Data exported successfully!");
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to export data");
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              disabled={exporting}
+              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-bold shadow-md transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <HiDownload size={20} />
+              {exporting ? "Exporting..." : "Export My Data"}
+            </button>
           </div>
         </div>
       </div>

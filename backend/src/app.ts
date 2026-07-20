@@ -9,6 +9,7 @@ import foundItemRoutes from './routes/founditem.route';
 import adminRoutes from './routes/admin.route';
 import chatRoutes from './routes/chat.route';
 import mfaRoutes from './routes/mfa.route';
+import dataRoutes from './routes/data.route';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -55,6 +56,7 @@ app.use('/api/v1/lost-reports', lostItemRoutes);
 app.use('/api/v1/found-items', foundItemRoutes);
 app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/mfa', mfaRoutes);
+app.use('/api/v1/data', dataRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   return res.status(200).json({ success: true, message: 'Welcome to the API' });
