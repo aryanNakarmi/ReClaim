@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 /**
  * Rate Limiting Middleware
@@ -12,7 +12,7 @@ import rateLimit from 'express-rate-limit';
  * - General API — moderate limits
  */
 
-// ── Auth endpoints: 5 requests per 15 minutes ──
+// ── Auth endpoints: 10 requests per 15 minutes ──
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,                   // 10 attempts per window
@@ -23,9 +23,10 @@ export const authLimiter = rateLimit({
   standardHeaders: true,    // Return rate limit info in headers
   legacyHeaders: false,
   keyGenerator: (req) => {
-    // Use IP + email if provided for more granular blocking
+    // Use the helper for proper IPv4/IPv6 handling, then append email
+    const ip = ipKeyGenerator(req.ip || req.socket.remoteAddress || 'unknown');
     const email = req.body?.email || '';
-    return `${req.ip}-${email}`;
+    return `${ip}-${email}`;
   },
 });
 
