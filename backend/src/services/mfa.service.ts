@@ -2,6 +2,15 @@ import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { UserRepository } from '../repositories/user.repository';
 import { HttpError } from '../errors/http-error';
+import { encrypt, decrypt } from '../utils/encryption';
+
+/**
+ * Check if a stored MFA secret is encrypted (new format) or plain text (legacy).
+ * Encrypted secrets follow the format: "hexIV:hexCiphertext"
+ */
+function isEncrypted(value: string): boolean {
+  return /^[0-9a-f]+:[0-9a-f]+$/i.test(value);
+}
 
 /**
  * MFA Service
@@ -28,9 +37,10 @@ export class MFAService {
       issuer: 'ReClaim',
     });
 
-    // Store the base32 secret (not the full object)
+    // Store encrypted base32 secret
+    const encryptedSecret = encrypt(secret.base32);
     await userRepository.updateUser(userId, {
-      mfaSecret: secret.base32,
+      mfaSecret: encryptedSecret,
       mfaEnabled: false, // Not yet verified
     } as any);
 
@@ -52,8 +62,11 @@ export class MFAService {
     if (!user) throw new HttpError(404, 'User not found');
     if (!user.mfaSecret) throw new HttpError(400, 'MFA not set up yet');
 
+    // Decrypt the secret (or use legacy plain text format)
+    const decryptedSecret = isEncrypted(user.mfaSecret) ? decrypt(user.mfaSecret) : user.mfaSecret;
+
     const isValid = speakeasy.totp.verify({
-      secret: user.mfaSecret,
+      secret: decryptedSecret,
       encoding: 'base32',
       token,
       window: 1, // Allow 30s clock drift
@@ -75,8 +88,11 @@ export class MFAService {
       throw new HttpError(400, 'MFA is not enabled for this user');
     }
 
+    // Decrypt the secret (or use legacy plain text format)
+    const decryptedSecret = isEncrypted(user.mfaSecret) ? decrypt(user.mfaSecret) : user.mfaSecret;
+
     return speakeasy.totp.verify({
-      secret: user.mfaSecret,
+      secret: decryptedSecret,
       encoding: 'base32',
       token,
       window: 1,

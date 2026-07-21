@@ -67,10 +67,21 @@ export class AuthController {
                 )
             }
             const loginData: LoginUserDTO = parsedData.data;
-            const { token, user, requiresMFA, tempToken } = await userService.loginUser(loginData);
+            const result = await userService.loginUser(loginData);
+            const { token, user, requiresMFA, tempToken, passwordExpired } = result;
 
             // Set req.user so the activity logger can capture the user's name/email
             (req as any).user = { _id: user._id, fullName: user.fullName, email: user.email, role: user.role };
+
+            // ── Check password expiry ──
+            if (passwordExpired) {
+                return res.status(200).json({
+                    success: true,
+                    message: "Your password has expired. Please reset it.",
+                    passwordExpired: true,
+                    userId: user._id.toString(),
+                });
+            }
 
             // ── Activity log ──
             await logSuccess(req, 'LOGIN', 'User', user._id.toString(), 'User logged in');

@@ -28,6 +28,16 @@ export const handleLogin = async (data: LoginData & { captchaToken?: string }) =
     try {
         const response = await login(data)
         if (response.success) {
+            // Password expired — redirect to reset
+            if (response.passwordExpired) {
+                return {
+                    success: true,
+                    passwordExpired: true,
+                    userId: response.userId,
+                    message: 'Your password has expired. Please reset it.'
+                }
+            }
+
             // MFA required — return the challenge info (don't set auth yet)
             if (response.requiresMFA) {
                 return {

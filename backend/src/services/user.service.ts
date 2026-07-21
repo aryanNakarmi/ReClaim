@@ -11,6 +11,7 @@ const CLIENT_URL = process.env.CLIENT_URL as string;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
 const PASSWORD_HISTORY_LIMIT = 5; // Prevent reuse of last 5 passwords
+const PASSWORD_EXPIRY_DAYS = 90;   // Force password change after 90 days
 
 let userRepository = new UserRepository(); 
 
@@ -46,7 +47,7 @@ export class UserService {
    * Login with account lockout protection.
    * Tracks failed attempts and locks account after MAX_LOGIN_ATTEMPTS.
    */
-  async loginUser(data: LoginUserDTO): Promise<{ token?: string; user: IUser; requiresMFA?: boolean; tempToken?: string }> {
+  async loginUser(data: LoginUserDTO): Promise<{ token?: string; user: IUser; requiresMFA?: boolean; tempToken?: string; passwordExpired?: boolean }> {
     const user = await userRepository.getUserByEmail(data.email);
     if (!user) {
       throw new HttpError(404, 'User not found');
@@ -93,6 +94,16 @@ export class UserService {
         loginAttempts: 0,
         lockUntil: undefined,
       });
+    }
+
+    // ── Check password expiry ──
+    // Use passwordChangedAt if available, otherwise fall back to createdAt (legacy users)
+    const passwordChangedAt = user.passwordChangedAt || user.createdAt;
+    if (passwordChangedAt) {
+      const daysSinceChange = Math.floor((Date.now() - passwordChangedAt.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceChange >= PASSWORD_EXPIRY_DAYS) {
+        return { user, passwordExpired: true };
+      }
     }
 
     // ── Check MFA ──

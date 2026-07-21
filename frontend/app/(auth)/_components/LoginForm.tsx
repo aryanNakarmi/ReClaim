@@ -44,6 +44,13 @@ export default function LoginForm(){
         const res = await handleLogin({ ...values, captchaToken });
         if (!res.success) return alert(res.message);
 
+        // ── Password expired — redirect to reset ──
+        if ((res as any).passwordExpired) {
+            alert("Your password has expired. Please reset it.");
+            router.push(`/request-password-reset?email=${encodeURIComponent(values.email)}`);
+            return;
+        }
+
         // ── MFA required — show TOTP challenge ──
         if ((res as any).requiresMFA) {
             setMfaTempToken((res as any).tempToken);
