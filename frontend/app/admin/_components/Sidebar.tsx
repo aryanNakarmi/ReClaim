@@ -14,6 +14,8 @@ import {
   HiPencil,
   HiChat,
   HiX,
+  HiEye,
+  HiShieldExclamation,
 } from "react-icons/hi";
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -53,6 +55,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     { href: "/admin/users", label: "Users", icon: <HiUsers size={22} /> },
     { href: "/admin/reports", label: "Reports", icon: <HiClipboardList size={22} /> },
     { href: "/admin/found-items", label: "Found Items", icon: <HiPencil size={22} /> },
+    { href: "/admin/monitor", label: "Monitor", icon: <HiEye size={22} /> },
+    { href: "/admin/ip-block", label: "IP Block", icon: <HiShieldExclamation size={22} /> },
     { href: "/admin/chat", label: "Chat", icon: <HiChat size={22} />, badge: unreadCount },
   ];
 

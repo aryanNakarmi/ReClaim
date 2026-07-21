@@ -69,6 +69,9 @@ export class AuthController {
             const loginData: LoginUserDTO = parsedData.data;
             const { token, user, requiresMFA, tempToken } = await userService.loginUser(loginData);
 
+            // Set req.user so the activity logger can capture the user's name/email
+            (req as any).user = { _id: user._id, fullName: user.fullName, email: user.email, role: user.role };
+
             // ── Activity log ──
             await logSuccess(req, 'LOGIN', 'User', user._id.toString(), 'User logged in');
 

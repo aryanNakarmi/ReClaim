@@ -14,6 +14,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
+import { ipBlockMiddleware } from './middleware/rateLimiter.middleware';
 
 dotenv.config();
 
@@ -44,6 +45,9 @@ app.use(cors({
 app.use(morgan('combined'));
 
 app.use(bodyParser.json());
+
+// ── IP Blocklist check — applied globally ──
+app.use(ipBlockMiddleware);
 
 const publicPath = path.join(process.cwd(), 'public');
 app.use('/lost_reports', express.static(path.join(publicPath, 'lost_reports')));

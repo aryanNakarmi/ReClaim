@@ -1,16 +1,40 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { IPBlocklistModel } from '../models/ipblocklist.model';
 
 /**
  * Rate Limiting Middleware
  * 
  * Protects against brute-force attacks by limiting the number of
  * requests a client can make within a time window.
+ * Also checks the IP blocklist to reject blocked IPs.
  * 
  * Applied to:
  * - Auth routes (login, register) — strict limits
  * - Password reset — strict limits
  * - General API — moderate limits
  */
+
+// ── Shared helper: get client IP ──
+function getClientIP(req: any): string {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+// ── Middleware to check IP blocklist ──
+export const ipBlockMiddleware = async (req: any, res: any, next: any) => {
+  try {
+    const ip = getClientIP(req);
+    const blocked = await IPBlocklistModel.findOne({ ip });
+    if (blocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your IP address has been blocked. Contact an administrator for assistance.',
+      });
+    }
+    next();
+  } catch {
+    next(); // Don't block requests if the DB check fails
+  }
+};
 
 // ── Auth endpoints: 10 requests per 15 minutes ──
 export const authLimiter = rateLimit({
@@ -24,7 +48,7 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Use the helper for proper IPv4/IPv6 handling, then append email
-    const ip = ipKeyGenerator(req.ip || req.socket.remoteAddress || 'unknown');
+    const ip = ipKeyGenerator(getClientIP(req));
     const email = req.body?.email || '';
     return `${ip}-${email}`;
   },
