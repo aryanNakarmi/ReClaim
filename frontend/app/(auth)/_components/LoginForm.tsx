@@ -46,8 +46,7 @@ export default function LoginForm(){
 
         // ── Password expired — redirect to reset ──
         if ((res as any).passwordExpired) {
-            alert("Your password has expired. Please reset it.");
-            router.push(`/request-password-reset?email=${encodeURIComponent(values.email)}`);
+            router.push(`/request-password-reset?email=${encodeURIComponent(values.email)}&reason=expired`);
             return;
         }
 

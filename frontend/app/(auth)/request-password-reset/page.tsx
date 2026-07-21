@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { requestPasswordReset } from "@/lib/api/auth";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import { useState } from "react";
-import { HiArrowLeft, HiCheckCircle } from "react-icons/hi";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { HiArrowLeft, HiCheckCircle, HiExclamationCircle } from "react-icons/hi";
 
 const RequestPasswordResetSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -16,17 +17,29 @@ const RequestPasswordResetSchema = z.object({
 type RequestPasswordResetDTO = z.infer<typeof RequestPasswordResetSchema>;
 
 export default function RequestPasswordResetPage() {
+    const searchParams = useSearchParams();
     const [submitted, setSubmitted] = useState(false);
     const [submittedEmail, setSubmittedEmail] = useState("");
+
+    const prefilledEmail = searchParams.get("email") || "";
+    const reason = searchParams.get("reason") || "";
 
     const { 
         register, 
         handleSubmit, 
         formState: { errors, isSubmitting },
+        setValue,
         reset 
     } = useForm<RequestPasswordResetDTO>({
         resolver: zodResolver(RequestPasswordResetSchema),
+        defaultValues: { email: prefilledEmail },
     });
+
+    useEffect(() => {
+        if (prefilledEmail) {
+            setValue("email", prefilledEmail);
+        }
+    }, [prefilledEmail, setValue]);
 
     const onSubmit = async (data: RequestPasswordResetDTO) => {
         try {
@@ -95,18 +108,32 @@ export default function RequestPasswordResetPage() {
         );
     }
 
-    // Request Password Reset Form
     return (
         <div className="space-y-6 w-full">
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset Your Password</h1>
                 <p className="text-gray-600 text-sm">
-                    Enter the email address associated with your account and we'll send you a link to reset your password.
+                    {reason === "expired"
+                        ? "Your password has expired for security reasons. Please choose a new password to continue."
+                        : "Enter the email address associated with your account and we'll send you a link to reset your password."
+                    }
                 </p>
             </div>
 
+            {reason === "expired" && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                    <HiExclamationCircle size={24} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="text-sm font-semibold text-amber-900">Password Expired</p>
+                        <p className="text-xs text-amber-800 mt-1">
+                            For security, passwords must be changed every 90 days. 
+                            Your previous password has expired — please create a new one.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Email Field */}
                 <div className="space-y-1">
                     <label htmlFor="email" className="text-sm font-medium text-gray-900">
                         Email Address
