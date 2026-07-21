@@ -1,24 +1,45 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { HiDownload, HiShieldCheck, HiPencil } from "react-icons/hi";
-import { exportUserData } from "@/lib/api/data";
+import { HiDownload, HiUpload, HiShieldCheck, HiPencil } from "react-icons/hi";
+import { exportUserData, importUserData } from "@/lib/api/data";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login"); // redirect if not logged in
+      router.replace("/login");
     }
   }, [user, loading, router]);
+
+  const handleImport = async (file: File) => {
+    if (!file.name.endsWith('.json')) {
+      toast.error('Please select a .json file exported from ReClaim');
+      return;
+    }
+    setImporting(true);
+    try {
+      const message = await importUserData(file);
+      toast.success(message);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to import data');
+    } finally {
+      setImporting(false);
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -112,6 +133,69 @@ export default function ProfilePage() {
               <HiDownload size={20} />
               {exporting ? "Exporting..." : "Export My Data"}
             </button>
+          </div>
+        </div>
+
+        {/* ──────── Data Import Section ──────── */}
+        <div className="bg-white rounded-lg shadow-lg p-8 mt-6 border-2 border-dashed border-gray-200">
+          <div className="text-center">
+            <div className="inline-block p-3 bg-blue-50 rounded-full mb-4">
+              <HiUpload size={28} className="text-blue-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Import Your Data</h2>
+            <p className="text-gray-500 text-sm mb-4">
+              Restore your profile and lost reports from a previously exported JSON file
+            </p>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImport(file);
+              }}
+            />
+
+            {/* Drop zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) handleImport(file);
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`cursor-pointer border-2 border-dashed rounded-xl p-8 transition-all ${
+                dragOver
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+              }`}
+            >
+              {importing ? (
+                <div className="flex items-center justify-center gap-2 text-gray-600">
+                  <svg className="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>Importing data...</span>
+                </div>
+              ) : (
+                <div>
+                  <HiUpload size={36} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600 font-medium">
+                    Drop your JSON file here or click to browse
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Only .json files exported from ReClaim are supported
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

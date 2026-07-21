@@ -23,3 +23,28 @@ export const exportUserData = async (): Promise<void> => {
     throw new Error(response.data.message || 'Failed to export data');
   }
 };
+
+/**
+ * Import user data from a previously exported JSON file.
+ * Restores profile info and lost reports.
+ * @param file The JSON file selected by the user
+ */
+export const importUserData = async (file: File): Promise<string> => {
+  const text = await file.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error('Invalid JSON file');
+  }
+
+  const response = await axios.post('/api/v1/data/import', {
+    profile: data.profile,
+    lostReports: data.lostReports,
+  });
+
+  if (response.data.success) {
+    return response.data.message;
+  }
+  throw new Error(response.data.message || 'Failed to import data');
+};

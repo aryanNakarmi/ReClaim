@@ -97,7 +97,7 @@ export default function RecentReports({ reports }: RecentReportsProps) {
                 </p>
                
                 <p className="text-sm text-gray-500 truncate">
-                  {typeof report.location === "string" ? report.location : report.location.address}
+                  {typeof report.location === "string" ? report.location : report.location?.address || "Unknown location"}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
                   by {report.reportedBy?.fullName || "Unknown"}

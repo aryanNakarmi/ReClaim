@@ -7,4 +7,7 @@ const router: Router = Router();
 // Export all user data (profile, reports, claims) as JSON
 router.get('/export', protect, dataController.exportUserData);
 
+// Import user data from a previously exported JSON file
+router.post('/import', protect, dataController.importUserData);
+
 export default router;

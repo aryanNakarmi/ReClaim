@@ -6,8 +6,8 @@ import { FoundItemModel } from '../models/founditem.model';
 /**
  * Data Controller
  * 
- * Provides data export functionality for users to download their
- * personal data in JSON format — supporting privacy principles
+ * Provides data export and import functionality for users to download
+ * and restore their personal data — supporting privacy principles
  * and right-to-data-portability.
  * 
  * Requirements alignment:
@@ -48,7 +48,6 @@ export class DataController {
           updatedAt: user.updatedAt,
         },
         lostReports: lostReports.map((r) => ({
-          id: r._id,
           itemCategory: r.itemCategory,
           location: r.location,
           description: r.description,
@@ -73,6 +72,63 @@ export class DataController {
       return res.status(500).json({
         success: false,
         message: error.message || 'Failed to export data',
+      });
+    }
+  }
+
+  /**
+   * Import user data from a previously exported JSON file.
+   * Restores profile info and lost reports.
+   */
+  async importUserData(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user._id.toString();
+      const { profile, lostReports } = req.body;
+
+      if (!profile && !lostReports) {
+        return res.status(400).json({
+          success: false,
+          message: 'No importable data found. Expected "profile" and/or "lostReports" fields.',
+        });
+      }
+
+      const results: string[] = [];
+
+      // ── Import profile data (updatable fields only) ──
+      if (profile) {
+        const updateData: any = {};
+        if (profile.fullName) updateData.fullName = profile.fullName;
+        if (profile.phoneNumber) updateData.phoneNumber = profile.phoneNumber;
+
+        if (Object.keys(updateData).length > 0) {
+          await userRepository.updateUser(userId, updateData);
+          results.push('Profile updated successfully');
+        }
+      }
+
+      // ── Import lost reports ──
+      if (lostReports && Array.isArray(lostReports) && lostReports.length > 0) {
+        const reportsToCreate = lostReports.map((r: any) => ({
+          itemCategory: r.itemCategory,
+          location: r.location,
+          description: r.description || '',
+          imageUrl: '',
+          status: 'pending',
+          reportedBy: userId,
+        }));
+
+        const created = await LostItemModel.insertMany(reportsToCreate);
+        results.push(`${created.length} lost report(s) imported successfully`);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: results.length > 0 ? results.join('. ') : 'No data was imported',
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to import data',
       });
     }
   }
