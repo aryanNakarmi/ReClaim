@@ -12,4 +12,12 @@ router.delete('/users/:id', protect, adminMiddleware, controller.deleteUser);
 router.get('/users', protect, adminMiddleware, controller.getAllUsers);
 router.get('/users/:id', protect, adminMiddleware, controller.getUserById);
 
+// ── IP Blocking ──
+router.get('/ip-block', protect, adminMiddleware, controller.getBlockedIPs);
+router.post('/ip-block', protect, adminMiddleware, controller.blockIP);
+router.delete('/ip-block/:ip', protect, adminMiddleware, controller.unblockIP);
+
+// ── Activity monitoring ──
+router.get('/activities', protect, adminMiddleware, controller.getActivities);
+
 export default router;   
