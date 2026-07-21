@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation"; 
 import Image from "next/image";
 import { LoginData, loginSchema } from "../schema";
-import { handleLogin } from "@/lib/actions/auth-action";
+import { handleLogin, handleMFALogin } from "@/lib/actions/auth-action";
 import { useAuth } from "@/context/AuthContext";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { Turnstile } from '@marsidev/react-turnstile'
@@ -30,24 +30,156 @@ export default function LoginForm(){
     const [pending, setTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
 
+    // ── MFA challenge state ──
+    const [mfaRequired, setMfaRequired] = useState(false);
+    const [mfaTempToken, setMfaTempToken] = useState<string>("");
+    const [mfaCode, setMfaCode] = useState<string>("");
+    const [mfaError, setMfaError] = useState<string | null>(null);
+    const [mfaLoading, setMfaLoading] = useState(false);
+
     const { setUser, setIsAuthenticated } = useAuth();
 
     const submit = async (values: LoginData) => {
+        setError(null);
         const res = await handleLogin({ ...values, captchaToken });
         if (!res.success) return alert(res.message);
 
-        setUser(res.data); 
+        // ── MFA required — show TOTP challenge ──
+        if ((res as any).requiresMFA) {
+            setMfaTempToken((res as any).tempToken);
+            setMfaRequired(true);
+            return;
+        }
+
+        setUser(res.data!); 
 
         // redirect based on role
-        const role = res.data.role?.toLowerCase();
+        const role = res.data!.role?.toLowerCase();
         if (role === "admin") router.replace("/admin");
         else if (role === "user") router.replace("/user/dashboard");
         else router.replace("/");
     };
 
+    // ── Handle MFA TOTP submission ──
+    const handleMfaSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!mfaCode.trim() || mfaCode.length !== 6) {
+            setMfaError("Please enter a valid 6-digit code");
+            return;
+        }
+        setMfaLoading(true);
+        setMfaError(null);
 
+        try {
+            const res = await handleMFALogin(mfaTempToken, mfaCode);
+            if (res.success) {
+                setUser(res.data!);
 
+                const role = res.data!.role?.toLowerCase();
+                if (role === "admin") router.replace("/admin");
+                else if (role === "user") router.replace("/user/dashboard");
+                else router.replace("/");
+            } else {
+                setMfaError(res.message || "Invalid verification code");
+            }
+        } catch (err: any) {
+            setMfaError(err.message || "MFA verification failed");
+        } finally {
+            setMfaLoading(false);
+        }
+    };
 
+    // ── Back to login from MFA screen ──
+    const handleBackToLogin = () => {
+        setMfaRequired(false);
+        setMfaCode("");
+        setMfaError(null);
+        setMfaTempToken("");
+    };
+
+    // ══════════════════════════════════════════════
+    // MFA Challenge Screen
+    // ══════════════════════════════════════════════
+    if (mfaRequired) {
+        return (
+            <div className="w-full max-w-md mx-auto">
+                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+                    {/* Lock Icon */}
+                    <div className="flex justify-center mb-4">
+                        <div className="w-16 h-16 bg-[#1B2A4F]/10 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-[#1B2A4F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-center text-gray-900 mb-1">
+                        Two-Factor Authentication
+                    </h2>
+                    <p className="text-gray-500 text-sm text-center mb-6">
+                        Enter the 6-digit code from your authenticator app
+                    </p>
+
+                    <form onSubmit={handleMfaSubmit} className="space-y-4">
+                        {/* TOTP Input */}
+                        <div>
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                placeholder="000000"
+                                value={mfaCode}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                    setMfaCode(val);
+                                    setMfaError(null);
+                                }}
+                                autoFocus
+                                className="w-full text-center text-3xl tracking-[0.5em] font-mono h-16 rounded-xl border-2 border-gray-300 text-gray-900 focus:border-[#E85D4A] focus:outline-none transition-colors"
+                            />
+                            {mfaError && (
+                                <p className="text-xs text-[#E85D4A] text-center mt-2">{mfaError}</p>
+                            )}
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={mfaLoading || mfaCode.length !== 6}
+                            className="h-12 w-full rounded-full text-white text-base font-bold bg-[#1B2A4F] hover:opacity-90 disabled:opacity-60 transition-all mt-2 shadow-lg"
+                        >
+                            {mfaLoading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Verifying...
+                                </span>
+                            ) : (
+                                "Verify & Login"
+                            )}
+                        </button>
+
+                        {/* Back button */}
+                        <button
+                            type="button"
+                            onClick={handleBackToLogin}
+                            disabled={mfaLoading}
+                            className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors mt-2"
+                        >
+                            ← Back to login
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
+    // ══════════════════════════════════════════════
+    // Login Form
+    // ══════════════════════════════════════════════
     return(
         <form onSubmit={handleSubmit(submit)} className="w-full max-w-md">
             <div className="space-y-3 w-full">

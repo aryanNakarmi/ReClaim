@@ -55,6 +55,18 @@ export const resetPassword = async (token: string, newPassword: string) => {
     }
 }
 
+/**
+ * Complete MFA login verification — verifies TOTP code and returns JWT + user data.
+ */
+export const verifyMFALogin = async (tempToken: string, token: string) => {
+    try {
+        const response = await axios.post('/api/v1/mfa/verify-login', { tempToken, token });
+        return response.data;
+    } catch (error: Error | any) {
+        throw new Error(error.response?.data?.message || error.message || 'MFA verification failed');
+    }
+}
+
 
 
 

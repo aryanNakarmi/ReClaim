@@ -1,7 +1,7 @@
 "use server";
 import { LoginData, RegisterData } from "@/app/(auth)/schema"
 import { redirect } from "next/navigation";
-import { register, login, updateProfile, requestPasswordReset, resetPassword } from '@/lib/api/auth';
+import { register, login, verifyMFALogin, updateProfile, requestPasswordReset, resetPassword } from '@/lib/api/auth';
 import { clearAuthCookies, setAuthToken, setUserData } from '@/lib/cookie';
 import { revalidatePath } from 'next/cache';
 
@@ -28,6 +28,18 @@ export const handleLogin = async (data: LoginData & { captchaToken?: string }) =
     try {
         const response = await login(data)
         if (response.success) {
+            // MFA required — return the challenge info (don't set auth yet)
+            if (response.requiresMFA) {
+                return {
+                    success: true,
+                    requiresMFA: true,
+                    tempToken: response.tempToken,
+                    userId: response.userId,
+                    message: 'MFA verification required'
+                }
+            }
+
+            // Normal login — set tokens and user data
             await setAuthToken(response.token)
             await setUserData(response.data)
             return {
@@ -42,6 +54,30 @@ export const handleLogin = async (data: LoginData & { captchaToken?: string }) =
         }
     } catch (error: Error | any) {
         return { success: false, message: error.message || 'Login action failed' }
+    }
+}
+/**
+ * Complete MFA login — verifies TOTP code, then sets auth cookies.
+ * Must be a server action because cookie.ts uses server-only `cookies()`.
+ */
+export const handleMFALogin = async (tempToken: string, mfaCode: string) => {
+    try {
+        const response = await verifyMFALogin(tempToken, mfaCode);
+        if (response.success) {
+            await setAuthToken(response.token);
+            await setUserData(response.data);
+            return {
+                success: true,
+                message: 'Login successful',
+                data: response.data
+            };
+        }
+        return {
+            success: false,
+            message: response.message || 'MFA verification failed'
+        };
+    } catch (error: Error | any) {
+        return { success: false, message: error.message || 'MFA login action failed' };
     }
 }
 
